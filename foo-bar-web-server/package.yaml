@@ -1,0 +1,35 @@
+name:                foo-bar-web-server
+version:             0.0.0.0
+license:             AllRightsReserved
+
+dependencies:
+- base >= 4.7 && < 5
+
+library:
+  source-dirs: src
+  dependencies:
+  - data-default
+  - envparse
+  - monad-logger
+  - optparse-applicative
+  - path
+  - path-io
+  - pretty-show
+  - shakespeare
+  - template-haskell
+  - text
+  - yaml
+  - yamlparse-applicative
+  - yesod
+  - yesod-static
+
+executables:
+  foo-bar-web-server:
+    main:                Main.hs
+    source-dirs:         app
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - foo-bar-web-server
