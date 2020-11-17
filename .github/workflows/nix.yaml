@@ -13,7 +13,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - uses: cachix/install-nix-action@v12
-    - uses: cachix/cachix-action@v6
+    - uses: cachix/cachix-action@v8
       with:
         name: foobar
         signingKey: '${{ secrets.CACHIX_SIGNING_KEY }}'
