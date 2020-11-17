@@ -1,6 +1,3 @@
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE ScopedTypeVariables #-}
-
 module Foo.Bar.Web.Server.TestUtils where
 
 import Control.Monad.Logger
