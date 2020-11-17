@@ -7,6 +7,5 @@ module Foo.Bar.Web.Server.Application where
 
 import Foo.Bar.Web.Server.Foundation
 import Foo.Bar.Web.Server.Handler
-import Yesod
 
 mkYesodDispatch "App" resourcesApp
