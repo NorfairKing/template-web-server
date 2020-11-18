@@ -29,10 +29,10 @@ getSettings = do
 
 data Settings
   = Settings
-      { settingPort :: Int,
-        settingLogLevel :: LogLevel,
-        settingGoogleAnalyticsTracking :: Maybe Text,
-        settingGoogleSearchConsoleVerification :: Maybe Text
+      { settingPort :: !Int,
+        settingLogLevel :: !LogLevel,
+        settingGoogleAnalyticsTracking :: !(Maybe Text),
+        settingGoogleSearchConsoleVerification :: !(Maybe Text)
       }
   deriving (Show, Eq, Generic)
 
@@ -49,10 +49,10 @@ combineToSettings Flags {..} Environment {..} mConf = do
 
 data Configuration
   = Configuration
-      { confPort :: Maybe Int,
-        confLogLevel :: Maybe LogLevel,
-        confGoogleAnalyticsTracking :: Maybe Text,
-        confGoogleSearchConsoleVerification :: Maybe Text
+      { confPort :: !(Maybe Int),
+        confLogLevel :: !(Maybe LogLevel),
+        confGoogleAnalyticsTracking :: !(Maybe Text),
+        confGoogleSearchConsoleVerification :: !(Maybe Text)
       }
   deriving (Show, Eq, Generic)
 
@@ -65,8 +65,8 @@ instance YamlSchema Configuration where
       Configuration
         <$> optionalField "port" "Port"
         <*> optionalFieldWith "log-level" "Minimal severity for log messages" viaRead
-        <*> optionalField "GOOGLE_ANALYTICS_TRACKING" "Google analytics tracking code"
-        <*> optionalField "GOOGLE_SEARCH_CONSOLE_VERIFICATION" "Google search console html element verification code"
+        <*> optionalField "google-analytics-tracking" "Google analytics tracking code"
+        <*> optionalField "google-search-console-verification" "Google search console html element verification code"
 
 getConfiguration :: Flags -> Environment -> IO (Maybe Configuration)
 getConfiguration Flags {..} Environment {..} =
@@ -83,11 +83,11 @@ defaultConfigFile = do
 
 data Environment
   = Environment
-      { envConfigFile :: Maybe FilePath,
-        envPort :: Maybe Int,
-        envLogLevel :: Maybe LogLevel,
-        envGoogleAnalyticsTracking :: Maybe Text,
-        envGoogleSearchConsoleVerification :: Maybe Text
+      { envConfigFile :: !(Maybe FilePath),
+        envPort :: !(Maybe Int),
+        envLogLevel :: !(Maybe LogLevel),
+        envGoogleAnalyticsTracking :: !(Maybe Text),
+        envGoogleSearchConsoleVerification :: !(Maybe Text)
       }
   deriving (Show, Eq, Generic)
 
@@ -101,7 +101,7 @@ environmentParser =
     Environment
       <$> Env.var (fmap Just . Env.str) "CONFIG_FILE" (mE <> Env.help "Config file")
       <*> Env.var (fmap Just . Env.auto) "PORT" (mE <> Env.help "Port")
-      <*> Env.var (fmap Just . Env.auto) "log-level" (mE <> Env.help "Minimal severity for log messages")
+      <*> Env.var (fmap Just . Env.auto) "LOG_LEVEL" (mE <> Env.help "Minimal severity for log messages")
       <*> Env.var (fmap Just . Env.str) "GOOGLE_ANALYTICS_TRACKING" (mE <> Env.help "Google analytics tracking code")
       <*> Env.var (fmap Just . Env.str) "GOOGLE_SEARCH_CONSOLE_VERIFICATION" (mE <> Env.help "Google search console html element verification code")
   where
@@ -133,11 +133,11 @@ flagsParser =
 
 data Flags
   = Flags
-      { flagConfigFile :: Maybe FilePath,
-        flagPort :: Maybe Int,
-        flagLogLevel :: Maybe LogLevel,
-        flagGoogleAnalyticsTracking :: Maybe Text,
-        flagGoogleSearchConsoleVerification :: Maybe Text
+      { flagConfigFile :: !(Maybe FilePath),
+        flagPort :: !(Maybe Int),
+        flagLogLevel :: !(Maybe LogLevel),
+        flagGoogleAnalyticsTracking :: !(Maybe Text),
+        flagGoogleSearchConsoleVerification :: !(Maybe Text)
       }
   deriving (Show, Eq, Generic)
 
