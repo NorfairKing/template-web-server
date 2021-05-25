@@ -16,13 +16,12 @@ import Text.Hamlet
 import Yesod
 import Yesod.EmbeddedStatic
 
-data App
-  = App
-      { appLogLevel :: !LogLevel,
-        appStatic :: !EmbeddedStatic,
-        appGoogleAnalyticsTracking :: !(Maybe Text),
-        appGoogleSearchConsoleVerification :: !(Maybe Text)
-      }
+data App = App
+  { appLogLevel :: !LogLevel,
+    appStatic :: !EmbeddedStatic,
+    appGoogleAnalyticsTracking :: !(Maybe Text),
+    appGoogleSearchConsoleVerification :: !(Maybe Text)
+  }
 
 mkYesodData "App" $(parseRoutesFile "routes.txt")
 

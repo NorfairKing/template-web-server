@@ -16,12 +16,12 @@ in
             types.submodule {
               options =
                 {
-                  enable = mkEnableOption "Foo/Bar API Server";
+                  enable = mkEnableOption "Foo/Bar WEB Server";
                   log-level =
                     mkOption {
                       type = types.str;
-                      example = "Debug";
-                      default = "Warn";
+                      example = "LevelDebug";
+                      default = "LevelWarn";
                       description = "The log level to use";
                     };
                   hosts =
@@ -46,21 +46,19 @@ in
       working-dir = "/www/foo-bar/${envname}/";
       # The docs server
       web-server-working-dir = working-dir + "web-server/";
-      web-server-database-file = web-server-working-dir + "foo-bar-server-database.sqlite3";
       # The api server
       web-server-service =
         with cfg.web-server;
         optionalAttrs enable {
           "foo-bar-web-server-${envname}" = {
-            description = "Foo/Bar API Server ${envname} Service";
+            description = "Foo/Bar WEB Server ${envname} Service";
             wantedBy = [ "multi-user.target" ];
             environment =
               {
-                "FOO_BAR_API_SERVER_LOG_LEVEL" =
+                "FOO_BAR_WEB_SERVER_LOG_LEVEL" =
                   "${builtins.toString log-level}";
-                "FOO_BAR_API_SERVER_PORT" =
+                "FOO_BAR_WEB_SERVER_PORT" =
                   "${builtins.toString port}";
-                "FOO_BAR_API_SERVER_DATABASE" = web-server-database-file;
               };
             script =
               ''
@@ -99,56 +97,11 @@ in
               serverAliases = tail hosts;
             };
         };
-
-      # Local backup
-      local-backup-service =
-        optionalAttrs (cfg.web-server.enable or false) (
-          optionalAttrs (cfg.web-server.local-backup.enable or false) (
-            with cfg.web-server.local-backup;
-            {
-              "foo-bar-web-server-local-backup-${envname}" = {
-                description = "Backup foo-bar-web-server database locally for ${envname}";
-                wantedBy = [ ];
-                script =
-                  ''
-                    mkdir -p ${backup-dir}
-                    file="${backup-dir}/''$(date +%F_%T).db"
-                    ${pkgs.sqlite}/bin/sqlite3 ${web-server-database-file} ".backup ''${file}"
-                  '';
-                serviceConfig = {
-                  WorkingDirectory = working-dir;
-                  Type = "oneshot";
-                };
-              };
-            }
-          )
-        );
-      local-backup-timer =
-        optionalAttrs (cfg.web-server.enable or false) (
-          optionalAttrs (cfg.web-server.local-backup.enable or false) (
-            with cfg.web-server.local-backup;
-            {
-              "foo-bar-web-server-local-backup-${envname}" = {
-                description = "Backup foo-bar-web-server database locally for ${envname} every twelve hours.";
-                wantedBy = [ "timers.target" ];
-                timerConfig = {
-                  OnCalendar = "00/12:00";
-                  Persistent = true;
-                };
-              };
-            }
-          )
-        );
     in
     mkIf cfg.enable {
       systemd.services =
         concatAttrs [
           web-server-service
-          local-backup-service
-        ];
-      systemd.timers =
-        concatAttrs [
-          local-backup-timer
         ];
       networking.firewall.allowedTCPPorts = builtins.concatLists [
         (optional cfg.web-server.enable cfg.web-server.port)
