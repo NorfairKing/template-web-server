@@ -1,59 +1,54 @@
-# This file is a nixpkgs overlay.
-# Here we add our packages to whichever version of nixpkgs it is being laid over.
 final: previous:
-with final.lib;
 with final.haskell.lib;
+
 {
-  # This attribute contains all packages in this repository.
   fooBarPackages =
     let
       fooBarPkg =
         name:
-          dontHaddock (
-            doBenchmark (
-              addBuildDepend (
-                failOnAllWarnings (
-                  disableLibraryProfiling (
-                    # I turn off library profiling because it slows down the build.
-                    final.haskellPackages.callCabal2nix name (final.gitignoreSource (../. + "/${name}")) {}
-                  )
+        doBenchmark (
+          addBuildDepend
+            (
+              failOnAllWarnings (
+                disableLibraryProfiling (
+                  final.haskellPackages.callCabal2nixWithOptions name (final.gitignoreSource (../. + "/${name}")) "--no-hpack" { }
                 )
-              ) (final.haskellPackages.autoexporter)
+              )
             )
-          );
+            (final.haskellPackages.autoexporter)
+        );
       fooBarPkgWithComp =
         exeName: name:
-          generateOptparseApplicativeCompletion exeName (fooBarPkg name);
+        generateOptparseApplicativeCompletion exeName (fooBarPkg name);
       fooBarPkgWithOwnComp = name: fooBarPkgWithComp name name;
-    in
-      {
-        "foo-bar-web-server" = fooBarPkgWithOwnComp "foo-bar-web-server";
-      };
 
-  # This attribute puts them all together into one.
+    in
+    {
+      "foo-bar-web-server" = fooBarPkg "foo-bar-web-server";
+    };
+
   fooBarRelease =
     final.symlinkJoin {
-      name = "fooBar-release";
-      paths = attrValues final.fooBarPackages;
+      name = "foo-bar-release";
+      paths = final.lib.attrValues final.fooBarPackages;
     };
 
 
-  # This is where we specify specific haskell package versions.
-  # These need to match the `extra-deps` part of `stack.yaml` for reproducibility.
   haskellPackages =
     previous.haskellPackages.override (
       old:
-        {
-          overrides =
-            final.lib.composeExtensions (
+      {
+        overrides =
+          final.lib.composeExtensions
+            (
               old.overrides or (
                 _:
                 _:
-                  {}
+                { }
               )
-            ) (
+            )
+            (
               self: super:
-                with final.haskell.lib;
                 let
                   # envparse
                   envparseRepo =
@@ -66,13 +61,34 @@ with final.haskell.lib;
                     };
                   envparsePkg =
                     dontCheck (
-                      self.callCabal2nix "envparse" (envparseRepo) {}
+                      self.callCabal2nix "envparse" envparseRepo { }
                     );
+                  appendfulRepo =
+                    final.fetchFromGitHub {
+                      owner = "NorfairKing";
+                      repo = "appendful";
+                      rev = "98d1a191941f94fa0379d5c08371ba0963d3462e";
+                      sha256 = "sha256:1lkxhpn1cvxjqa4v45k9b0n9hgw1psvs40abp09gqrc3009v974l";
+                    };
+                  appendfulPkg = name: self.callCabal2nix "appendful" (appendfulRepo + "/${name}") { };
+                  base16Repo =
+                    final.fetchFromGitHub {
+                      owner = "emilypi";
+                      repo = "base16";
+                      rev = "f340b4a9a496320010930368e503ba6b7907f725";
+                      sha256 = "sha256:1c6910h9y3nmj2277d7bif3nilgacp4qafl4g5b3r2c0295hbq7z";
+                    };
+                  base16Pkg = self.callCabal2nix "base16" base16Repo { };
+
                 in
-                  final.fooBarPackages // {
-                    envparse = self.callHackage "envparse" "0.4.1" {};
-                  }
+                final.fooBarPackages // {
+                  envparse = envparsePkg;
+                  appendful = appendfulPkg "appendful";
+                  appendful-persistent = appendfulPkg "appendful-persistent";
+                  genvalidity-appendful = appendfulPkg "genvalidity-appendful";
+                  base16 = base16Pkg;
+                }
             );
-        }
+      }
     );
 }

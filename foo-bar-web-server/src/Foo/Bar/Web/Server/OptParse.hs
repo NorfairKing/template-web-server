@@ -27,13 +27,12 @@ getSettings = do
   config <- getConfiguration flags env
   combineToSettings flags env config
 
-data Settings
-  = Settings
-      { settingPort :: !Int,
-        settingLogLevel :: !LogLevel,
-        settingGoogleAnalyticsTracking :: !(Maybe Text),
-        settingGoogleSearchConsoleVerification :: !(Maybe Text)
-      }
+data Settings = Settings
+  { settingPort :: !Int,
+    settingLogLevel :: !LogLevel,
+    settingGoogleAnalyticsTracking :: !(Maybe Text),
+    settingGoogleSearchConsoleVerification :: !(Maybe Text)
+  }
   deriving (Show, Eq, Generic)
 
 combineToSettings :: Flags -> Environment -> Maybe Configuration -> IO Settings
@@ -47,13 +46,12 @@ combineToSettings Flags {..} Environment {..} mConf = do
     mc :: (Configuration -> Maybe a) -> Maybe a
     mc f = mConf >>= f
 
-data Configuration
-  = Configuration
-      { confPort :: !(Maybe Int),
-        confLogLevel :: !(Maybe LogLevel),
-        confGoogleAnalyticsTracking :: !(Maybe Text),
-        confGoogleSearchConsoleVerification :: !(Maybe Text)
-      }
+data Configuration = Configuration
+  { confPort :: !(Maybe Int),
+    confLogLevel :: !(Maybe LogLevel),
+    confGoogleAnalyticsTracking :: !(Maybe Text),
+    confGoogleSearchConsoleVerification :: !(Maybe Text)
+  }
   deriving (Show, Eq, Generic)
 
 instance FromJSON Configuration where
@@ -81,14 +79,13 @@ defaultConfigFile = do
   xdgConfigDir <- getXdgDir XdgConfig (Just [reldir|optparse-template|])
   resolveFile xdgConfigDir "config.yaml"
 
-data Environment
-  = Environment
-      { envConfigFile :: !(Maybe FilePath),
-        envPort :: !(Maybe Int),
-        envLogLevel :: !(Maybe LogLevel),
-        envGoogleAnalyticsTracking :: !(Maybe Text),
-        envGoogleSearchConsoleVerification :: !(Maybe Text)
-      }
+data Environment = Environment
+  { envConfigFile :: !(Maybe FilePath),
+    envPort :: !(Maybe Int),
+    envLogLevel :: !(Maybe LogLevel),
+    envGoogleAnalyticsTracking :: !(Maybe Text),
+    envGoogleSearchConsoleVerification :: !(Maybe Text)
+  }
   deriving (Show, Eq, Generic)
 
 getEnvironment :: IO Environment
@@ -105,7 +102,7 @@ environmentParser =
       <*> Env.var (fmap Just . Env.str) "GOOGLE_ANALYTICS_TRACKING" (mE <> Env.help "Google analytics tracking code")
       <*> Env.var (fmap Just . Env.str) "GOOGLE_SEARCH_CONSOLE_VERIFICATION" (mE <> Env.help "Google search console html element verification code")
   where
-    mE = Env.def Nothing <> Env.keep
+    mE = Env.def Nothing
 
 getFlags :: IO Flags
 getFlags = customExecParser prefs_ flagsParser
@@ -131,14 +128,13 @@ flagsParser =
           T.unpack (YamlParse.prettyColourisedSchemaDoc @Configuration)
         ]
 
-data Flags
-  = Flags
-      { flagConfigFile :: !(Maybe FilePath),
-        flagPort :: !(Maybe Int),
-        flagLogLevel :: !(Maybe LogLevel),
-        flagGoogleAnalyticsTracking :: !(Maybe Text),
-        flagGoogleSearchConsoleVerification :: !(Maybe Text)
-      }
+data Flags = Flags
+  { flagConfigFile :: !(Maybe FilePath),
+    flagPort :: !(Maybe Int),
+    flagLogLevel :: !(Maybe LogLevel),
+    flagGoogleAnalyticsTracking :: !(Maybe Text),
+    flagGoogleSearchConsoleVerification :: !(Maybe Text)
+  }
   deriving (Show, Eq, Generic)
 
 parseFlags :: OptParse.Parser Flags
