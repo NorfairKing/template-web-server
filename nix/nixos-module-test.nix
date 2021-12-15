@@ -2,8 +2,11 @@
 , pkgs ? import ./pkgs.nix { inherit sources; }
 }:
 let
-  foo-bar-production = import (./nixos-module.nix) { envname = "production"; fooBarPackages = pkgs.fooBarPackages; };
-  port = 8001;
+  foo-bar-production = import (./nixos-module.nix) {
+    envname = "production";
+    fooBarPackages = pkgs.fooBarPackages;
+  };
+  port = 8080;
 in
 pkgs.nixosTest (
   { lib, pkgs, ... }: {
@@ -21,8 +24,6 @@ pkgs.nixosTest (
       };
     };
     testScript = ''
-      from shlex import quote
-
       machine.start()
       machine.wait_for_unit("multi-user.target")
 

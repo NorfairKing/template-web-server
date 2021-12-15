@@ -1,6 +1,6 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.34.4.
+-- This file has been generated from package.yaml by hpack version 0.34.5.
 --
 -- see: https://github.com/sol/hpack
 
@@ -8,6 +8,11 @@ name:           foo-bar-web-server
 version:        0.0.0.0
 license:        AllRightsReserved
 build-type:     Simple
+extra-source-files:
+    routes.txt
+    templates/default-body.hamlet
+    templates/default-page.hamlet
+    templates/home.hamlet
 
 library
   exposed-modules:
@@ -27,7 +32,9 @@ library
   hs-source-dirs:
       src
   build-depends:
-      base >=4.7 && <5
+      autodocodec
+    , autodocodec-yaml
+    , base >=4.7 && <5
     , data-default
     , envparse
     , monad-logger
@@ -39,7 +46,6 @@ library
     , template-haskell
     , text
     , yaml
-    , yamlparse-applicative
     , yesod
     , yesod-static
   default-language: Haskell2010

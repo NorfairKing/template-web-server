@@ -1,24 +1,29 @@
 {-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE DerivingVia #-}
+{-# LANGUAGE OverloadedLists #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE TypeApplications #-}
+{-# OPTIONS_GHC -fno-warn-orphans #-}
 
 module Foo.Bar.Web.Server.OptParse where
 
+import Autodocodec
+import Autodocodec.Yaml
 import Control.Applicative
 import Control.Monad.Logger
 import Data.Maybe
 import Data.Text (Text)
 import qualified Data.Text as T
-import Data.Yaml
+import qualified Data.Text.Encoding as TE
+import Data.Yaml (FromJSON, ToJSON)
 import qualified Env
 import GHC.Generics (Generic)
 import Options.Applicative as OptParse
 import qualified Options.Applicative.Help as OptParse (string)
 import Path
 import Path.IO
-import YamlParse.Applicative as YamlParse
 
 getSettings :: IO Settings
 getSettings = do
@@ -37,7 +42,7 @@ data Settings = Settings
 
 combineToSettings :: Flags -> Environment -> Maybe Configuration -> IO Settings
 combineToSettings Flags {..} Environment {..} mConf = do
-  let settingPort = fromMaybe 8000 $ flagPort <|> envPort <|> mc confPort
+  let settingPort = fromMaybe 8080 $ flagPort <|> envPort <|> mc confPort
       settingLogLevel = fromMaybe LevelWarn $ flagLogLevel <|> envLogLevel <|> mc confLogLevel
       settingGoogleAnalyticsTracking = flagGoogleAnalyticsTracking <|> envGoogleAnalyticsTracking <|> mc confGoogleAnalyticsTracking
       settingGoogleSearchConsoleVerification = flagGoogleSearchConsoleVerification <|> envGoogleSearchConsoleVerification <|> mc confGoogleSearchConsoleVerification
@@ -52,31 +57,38 @@ data Configuration = Configuration
     confGoogleAnalyticsTracking :: !(Maybe Text),
     confGoogleSearchConsoleVerification :: !(Maybe Text)
   }
-  deriving (Show, Eq, Generic)
+  deriving stock (Show, Eq, Generic)
+  deriving (FromJSON, ToJSON) via (Autodocodec Configuration)
 
-instance FromJSON Configuration where
-  parseJSON = viaYamlSchema
-
-instance YamlSchema Configuration where
-  yamlSchema =
-    objectParser "Configuration" $
+instance HasCodec Configuration where
+  codec =
+    object "Configuration" $
       Configuration
-        <$> optionalField "port" "Port"
-        <*> optionalFieldWith "log-level" "Minimal severity for log messages" viaRead
-        <*> optionalField "google-analytics-tracking" "Google analytics tracking code"
-        <*> optionalField "google-search-console-verification" "Google search console html element verification code"
+        <$> optionalField "port" "Port" .= confPort
+        <*> optionalField "log-level" "Minimal severity for log messages" .= confLogLevel
+        <*> optionalField "google-analytics-tracking" "Google analytics tracking code" .= confGoogleAnalyticsTracking
+        <*> optionalField "google-search-console-verification" "Google search console html element verification code" .= confGoogleSearchConsoleVerification
+
+instance HasCodec LogLevel where
+  codec =
+    stringConstCodec
+      [ (LevelDebug, "Debug"),
+        (LevelInfo, "Info"),
+        (LevelWarn, "Warn"),
+        (LevelError, "Error")
+      ]
 
 getConfiguration :: Flags -> Environment -> IO (Maybe Configuration)
 getConfiguration Flags {..} Environment {..} =
   case flagConfigFile <|> envConfigFile of
-    Nothing -> defaultConfigFile >>= YamlParse.readConfigFile
+    Nothing -> defaultConfigFile >>= readYamlConfigFile
     Just cf -> do
       afp <- resolveFile' cf
-      YamlParse.readConfigFile afp
+      readYamlConfigFile afp
 
 defaultConfigFile :: IO (Path Abs File)
 defaultConfigFile = do
-  xdgConfigDir <- getXdgDir XdgConfig (Just [reldir|optparse-template|])
+  xdgConfigDir <- getXdgDir XdgConfig (Just [reldir|foo-bar|])
   resolveFile xdgConfigDir "config.yaml"
 
 data Environment = Environment
@@ -125,7 +137,7 @@ flagsParser =
         [ Env.helpDoc environmentParser,
           "",
           "Configuration file format:",
-          T.unpack (YamlParse.prettyColourisedSchemaDoc @Configuration)
+          T.unpack (TE.decodeUtf8 (renderColouredSchemaViaCodec @Configuration))
         ]
 
 data Flags = Flags
