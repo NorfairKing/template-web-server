@@ -15,7 +15,6 @@ import Control.Monad.Logger
 import Data.Maybe
 import Data.Text (Text)
 import qualified Data.Text as T
-import qualified Data.Text.Encoding as TE
 import Data.Yaml (FromJSON, ToJSON)
 import qualified Env
 import GHC.Generics (Generic)
@@ -63,10 +62,14 @@ instance HasCodec Configuration where
   codec =
     object "Configuration" $
       Configuration
-        <$> optionalField "port" "Port" .= confPort
-        <*> optionalField "log-level" "Minimal severity for log messages" .= confLogLevel
-        <*> optionalField "google-analytics-tracking" "Google analytics tracking code" .= confGoogleAnalyticsTracking
-        <*> optionalField "google-search-console-verification" "Google search console html element verification code" .= confGoogleSearchConsoleVerification
+        <$> optionalField "port" "Port"
+          .= confPort
+        <*> optionalField "log-level" "Minimal severity for log messages"
+          .= confLogLevel
+        <*> optionalField "google-analytics-tracking" "Google analytics tracking code"
+          .= confGoogleAnalyticsTracking
+        <*> optionalField "google-search-console-verification" "Google search console html element verification code"
+          .= confGoogleSearchConsoleVerification
 
 instance HasCodec LogLevel where
   codec =
@@ -134,7 +137,7 @@ flagsParser =
         [ Env.helpDoc environmentParser,
           "",
           "Configuration file format:",
-          T.unpack (TE.decodeUtf8 (renderColouredSchemaViaCodec @Configuration))
+          T.unpack (renderColouredSchemaViaCodec @Configuration)
         ]
 
 data Flags = Flags

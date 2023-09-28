@@ -5,11 +5,12 @@ This is a template implementation of a Yesod Web Server.
 * Haskell code for a Yesod Web Server with all best practices
 * Integration tests for each handler
 * OptParse for the Web server
-* A nix build
+* Coverage report
+* A Cabal build
+* A Stack build
+* A Nix build
 * An example cast for documentation
-* CI
-  * Stack-based CI
-  * Nix-based CI
+* Flake-based CI
 * Pre-commit hooks
 
 ## License
@@ -17,7 +18,7 @@ This is a template implementation of a Yesod Web Server.
 This template is **not** free to use.
 See https://template.cs-syd.eu/template/NorfairKing/template-web-server for more information.
 
-Copyright (c) 2020-2022 Tom Sydney Kerckhove.
+Copyright (c) 2020-2023 Tom Sydney Kerckhove.
 
 All Rights Reserved.
 
