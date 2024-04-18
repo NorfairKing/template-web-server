@@ -45,7 +45,6 @@ library
     , shakespeare
     , template-haskell
     , text
-    , yaml
     , yesod
     , yesod-static
   default-language: Haskell2010

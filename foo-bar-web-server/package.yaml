@@ -24,7 +24,6 @@ library:
   - shakespeare
   - template-haskell
   - text
-  - yaml
   - yesod
   - yesod-static
 

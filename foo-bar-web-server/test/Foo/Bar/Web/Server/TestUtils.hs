@@ -9,8 +9,6 @@ import Yesod.Test
 
 type FooBarWebServerSpec = YesodSpec App
 
-type FooBarWebServerExample = YesodExample App
-
 fooBarWebServerSpec :: FooBarWebServerSpec -> Spec
 fooBarWebServerSpec =
   yesodSpec $

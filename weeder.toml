@@ -1,0 +1,15 @@
+unused-types = true
+type-class-roots = false
+roots = [
+  "^Main.main",
+  # Generated
+  "Paths_",
+  # False positives
+  "mkStatic",
+  "widgetFile",
+]
+root-instances = [
+  # Generated
+  { instance = "ParseRoute App", module = "Foo.Bar.Web.Server.Foundation" },
+  { instance = "RouteAttrs App", module = "Foo.Bar.Web.Server.Foundation" },
+]

@@ -1,7 +1,7 @@
 { mkDerivation, autodocodec, autodocodec-yaml, base, data-default
 , envparse, genvalidity-hspec, hspec, hspec-discover, lib
 , monad-logger, optparse-applicative, path, path-io, pretty-show
-, shakespeare, template-haskell, text, yaml, yesod, yesod-static
+, shakespeare, template-haskell, text, yesod, yesod-static
 , yesod-test
 }:
 mkDerivation {
@@ -13,7 +13,7 @@ mkDerivation {
   libraryHaskellDepends = [
     autodocodec autodocodec-yaml base data-default envparse
     monad-logger optparse-applicative path path-io pretty-show
-    shakespeare template-haskell text yaml yesod yesod-static
+    shakespeare template-haskell text yesod yesod-static
   ];
   executableHaskellDepends = [ base ];
   testHaskellDepends = [
