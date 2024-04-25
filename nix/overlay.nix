@@ -5,8 +5,29 @@ with final.haskell.lib;
   fooBarRelease =
     final.symlinkJoin {
       name = "foo-bar-release";
-      paths = final.lib.attrValues final.haskellPackages.fooBarPackages;
+      paths = final.lib.attrValues final.fooBarReleasePackages;
     };
+
+  fooBarReleasePackages =
+    let
+      enableStatic = pkg:
+        overrideCabal pkg
+          (old: {
+            configureFlags = (old.configureFlags or [ ]) ++ optionals final.stdenv.hostPlatform.isMusl [
+              "--ghc-option=-optl=-static"
+              "--extra-lib-dirs=${final.gmp6.override { withStatic = true; }}/lib"
+              "--extra-lib-dirs=${final.libffi.overrideAttrs (old: { dontDisableStatic = true;
+})}/lib"
+              "--extra-lib-dirs=${final.zlib.static}/lib"
+            ];
+            enableSharedExecutables = !final.stdenv.hostPlatform.isMusl;
+            enableSharedLibraries = !final.stdenv.hostPlatform.isMusl;
+          });
+    in
+    builtins.mapAttrs
+      (_: pkg: justStaticExecutables (enableStatic pkg))
+      final.haskellPackages.fooBarPackages;
+
   haskellPackages = prev.haskellPackages.override (old: {
     overrides = final.lib.composeExtensions (old.overrides or (_: _: { }))
       (
@@ -50,8 +71,26 @@ with final.haskell.lib;
             fooBarPackages = {
               foo-bar-web-server = fooBarPkg "foo-bar-web-server";
             };
+
+            fixGHC = pkg:
+              if final.stdenv.hostPlatform.isMusl
+              then
+                pkg.override
+                  {
+                    # To make sure that executables that need template
+                    # haskell can be linked statically.
+                    enableRelocatedStaticLibs = true;
+                    enableShared = false;
+                  }
+              else pkg;
+
           in
           {
+            ghc = fixGHC super.ghc;
+            buildHaskellPackages = old.buildHaskellPackages.override (oldBuildHaskellPackages: {
+              ghc = fixGHC oldBuildHaskellPackages.ghc;
+            });
+
             inherit fooBarPackages;
           } // fooBarPackages
       );

@@ -9,6 +9,7 @@ This is a template implementation of a Yesod Web Server.
 * A Cabal build
 * A Stack build
 * A Nix build
+* A Statically-linked Nix build
 * An example cast for documentation
 * Flake-based CI
 * Pre-commit hooks
