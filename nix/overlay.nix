@@ -16,7 +16,7 @@ with final.haskell.lib;
             configureFlags = (old.configureFlags or [ ]) ++ optionals final.stdenv.hostPlatform.isMusl [
               "--ghc-option=-optl=-static"
               "--extra-lib-dirs=${final.gmp6.override { withStatic = true; }}/lib"
-              "--extra-lib-dirs=${final.libffi.overrideAttrs (old: { dontDisableStatic = true;
+              "--extra-lib-dirs=${final.libffi.overrideAttrs (_: { dontDisableStatic = true;
 })}/lib"
               "--extra-lib-dirs=${final.zlib.static}/lib"
             ];
@@ -66,7 +66,7 @@ with final.haskell.lib;
             fooBarPkgWithOwnComp = name: fooBarPkgWithComp name name;
 
             fooBarPackages = {
-              foo-bar-web-server = fooBarPkg "foo-bar-web-server";
+              foo-bar-web-server = fooBarPkgWithOwnComp "foo-bar-web-server";
             };
 
             fixGHC = pkg:
