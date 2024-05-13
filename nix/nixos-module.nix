@@ -51,6 +51,13 @@ in
       working-dir = "/www/foo-bar/${envname}/";
       # The docs server
       web-server-working-dir = working-dir + "web-server/";
+      attrOrNull = name: value: optionalAttrs (!builtins.isNull value) { "${name}" = value; };
+      web-server-config = with cfg.web-server; mergeListRecursively [
+        (attrOrNull "port" port)
+        (attrOrNull "log-level" log-level)
+        cfg.web-server.config
+      ];
+      web-server-config-file = (pkgs.formats.yaml { }).generate "foo-bar-web-server-config" web-server-config;
       # The api server
       web-server-service =
         with cfg.web-server;
@@ -59,8 +66,7 @@ in
             description = "Foo/Bar WEB Server ${envname} Service";
             wantedBy = [ "multi-user.target" ];
             environment = {
-              "FOO_BAR_WEB_SERVER_LOG_LEVEL" = "${builtins.toString log-level}";
-              "FOO_BAR_WEB_SERVER_PORT" = "${builtins.toString port}";
+              "FOO_BAR_WEB_SERVER_CONFIG_FILE" = "${web-server-config-file}";
             };
             script = ''
               mkdir -p "${web-server-working-dir}"
