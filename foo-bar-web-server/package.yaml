@@ -11,6 +11,7 @@ extra-source-files:
 
 library:
   source-dirs: src
+  build-tools: autoexporter
   dependencies:
   - autodocodec
   - autodocodec-yaml
