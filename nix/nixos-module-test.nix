@@ -1,33 +1,39 @@
-{ sources ? import ./sources.nix
-, pkgs ? import ./pkgs.nix { inherit sources; }
+{ nixosTest
+, foo-bar-nixos-module-factory
 }:
 let
-  foo-bar-production = import (./nixos-module.nix) {
+  foo-bar-production = foo-bar-nixos-module-factory {
     envname = "production";
-    fooBarPackages = pkgs.fooBarPackages;
   };
   port = 8080;
 in
-pkgs.nixosTest (
+nixosTest (
   { lib, pkgs, ... }: {
     name = "foo-bar-module-test";
-    machine = {
-      imports = [
-        foo-bar-production
-      ];
-      services.foo-bar.production = {
-        enable = true;
-        web-server = {
+    nodes = {
+      server = {
+        imports = [
+          foo-bar-production
+        ];
+        services.foo-bar.production = {
           enable = true;
-          inherit port;
+          web-server = {
+            enable = true;
+            inherit port;
+            openFirewall = true;
+          };
         };
       };
+      client = { };
     };
     testScript = ''
-      machine.start()
-      machine.wait_for_unit("multi-user.target")
+      server.start()
+      client.start()
+      server.wait_for_unit("multi-user.target")
+      client.wait_for_unit("multi-user.target")
 
-      machine.wait_for_open_port(${builtins.toString port})
+      server.wait_for_open_port(${builtins.toString port})
+      client.succeed("curl server:${builtins.toString port}")
     '';
   }
 )

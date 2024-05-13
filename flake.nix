@@ -32,6 +32,9 @@
         ];
       };
       pkgsMusl = pkgs.pkgsMusl;
+      mkNixosModule = import ./nix/nixos-module.nix {
+        inherit (pkgsMusl.fooBarReleasePackages) foo-bar-web-server;
+      };
     in
     {
       overlays.${system} = import ./nix/overlay.nix;
@@ -62,6 +65,10 @@
             cabal2nix.enable = true;
           };
         };
+        nixos-module-test = import ./nix/nixos-module-test.nix {
+          inherit (pkgs) nixosTest;
+          foo-bar-nixos-module-factory = self.nixosModuleFactories.${system}.default;
+        };
       };
       devShells.${system}.default = pkgs.haskellPackages.shellFor {
         name = "foo-bar-shell";
@@ -82,5 +89,7 @@
           ]);
         shellHook = self.checks.${system}.pre-commit.shellHook;
       };
+      nixosModules.${system}.default = mkNixosModule { envname = "production"; };
+      nixosModuleFactories.${system}.default = mkNixosModule;
     };
 }
