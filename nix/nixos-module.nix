@@ -11,7 +11,7 @@ with lib;
 
 let
   cfg = config.services.foo-bar."${envname}";
-  concatAttrs = attrList: fold (x: y: x // y) { } attrList;
+  mergeListRecursively = pkgs.callPackage ./merge-lists-recursively.nix { };
 in
 {
   options.services.foo-bar."${envname}" = {
@@ -20,10 +20,14 @@ in
       type = types.submodule {
         options = {
           enable = mkEnableOption "Foo/Bar WEB Server";
+          config = mkOption {
+            default = { };
+            description = "The contents of the config file, as an attribute set. This will be translated to Yaml and put in the right place along with the rest of the options defined in this submodule.";
+          };
           log-level = mkOption {
             type = types.str;
-            example = "LevelDebug";
-            default = "LevelWarn";
+            example = "Debug";
+            default = "Warn";
             description = "The log level to use";
           };
           hosts = mkOption {
@@ -63,7 +67,7 @@ in
         with cfg.web-server;
         optionalAttrs enable {
           "foo-bar-web-server-${envname}" = {
-            description = "Foo/Bar WEB Server ${envname} Service";
+            description = "FooBar Web Server ${envname} Service";
             wantedBy = [ "multi-user.target" ];
             environment = {
               "FOO_BAR_WEB_SERVER_CONFIG_FILE" = "${web-server-config-file}";
@@ -91,25 +95,19 @@ in
           "${head hosts}" = {
             enableACME = true;
             forceSSL = true;
-            locations."/" = {
-              proxyPass = "http://localhost:${builtins.toString port}";
-              # Just to make sure we don't run into 413 errors on big syncs
-              extraConfig = ''
-                client_max_body_size 0;
-              '';
-            };
+            locations."/".proxyPass = "http://localhost:${builtins.toString port}";
             serverAliases = tail hosts;
           };
         };
     in
     mkIf cfg.enable {
-      systemd.services = concatAttrs [
+      systemd.services = mergeListRecursively [
         web-server-service
       ];
       networking.firewall.allowedTCPPorts = builtins.concatLists [
         (optional ((cfg.web-server.enable or false) && cfg.web-server.openFirewall) cfg.web-server.port)
       ];
-      services.nginx.virtualHosts = concatAttrs [
+      services.nginx.virtualHosts = mergeListRecursively [
         web-server-host
       ];
     };
