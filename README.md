@@ -19,7 +19,7 @@ This is a template implementation of a Yesod Web Server.
 This template is **not** free to use.
 See https://template.cs-syd.eu/template/NorfairKing/template-web-server for more information.
 
-Copyright (c) 2020-2023 Tom Sydney Kerckhove.
+Copyright (c) 2020-2024 Tom Sydney Kerckhove.
 
 All Rights Reserved.
 
